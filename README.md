@@ -25,13 +25,6 @@ Actions and states are unified into a padded **16-dim space** so that one model 
 | **Action expert** | — | ~0.64B |
 | **Total** | | **~8.8B** |
 
-**Hardware reference**:
-
-| Mode | VRAM | Recommended GPU |
-|---|---|---|
-| Evaluation (T5 encoded on the fly) | ~41 GB | A100-80G / H100 |
-| Training | > 80 GB | A100-80G / H100 |
-
 ## Table of Contents
 
 - [Installation](#installation)
