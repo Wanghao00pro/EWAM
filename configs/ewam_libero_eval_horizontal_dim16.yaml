@@ -1,0 +1,137 @@
+# EWAM LIBERO Evaluation Configuration - dim16 (Horizontal + UnifyTo16)
+#
+# Pairs with training config: libero_lerobot_wan_vlm_mask_horizontal_dim16.yaml
+# - action_dim=16 / state_dim=16 (UnifyTo16 padded, matching pretrain/finetune checkpoint)
+# - image: horizontal concat (agentview | wrist side-by-side), 224x448
+# - normalization: min/max [-1,1], dataset_stats from training run
+# - eval script pads state 8->16 before inference, restores action 16->7 before denormalize
+
+ckpt: null
+gpu_id: 0
+seed: null
+
+common:
+  action_dim: 16        # Padded (UnifyTo16); eval script restores to 7 before denormalize
+  state_dim: 16         # Padded (UnifyTo16); eval script pads 8->16 before inference
+
+  num_video_frames: 8
+  video_height: 224     # Horizontal: [224, 448], matches training
+  video_width: 448
+
+  global_downsample_rate: 1
+  video_action_freq_ratio: 2   # action_chunk_size = 8 * 2 = 16
+
+model:
+  wan:
+    config_path: "/path/to/ewam_weights/Wan2.2-TI2V-5B"
+    checkpoint_path: "/path/to/ewam_weights/Wan2.2-TI2V-5B"
+    vae_path: "/path/to/ewam_weights/Wan2.2-TI2V-5B/Wan2.2_VAE.pth"
+    precision: "bfloat16"
+
+  vlm:
+    checkpoint_path: "/path/to/ewam_weights/Qwen3-VL-2B-Instruct"
+    precision: "bfloat16"
+    frozen: false
+
+  # Qwen3-VL Expert settings (for Ewam)
+  qwen3_expert:
+    vlm_dim: 2048
+    head_dim: 128
+    num_heads: 24
+    num_layers: 30
+    norm_eps: 1e-5
+
+  action_expert:
+    hidden_size: 1024
+    ffn_dim_multiplier: 4
+    norm_eps: 1e-5
+
+  time_distribution:
+    timestep_sample_method: "logit_normal"
+    sigmoid_scale: 1.0
+    min_t: 0.0
+    max_t: 1.0
+
+  # Training mode: finetune (state+action) for LIBERO
+  training_mode: "finetune"
+
+  inference:
+    num_inference_timesteps: 10
+
+  loss_weights:
+    video_loss_weight: 1.0
+    action_loss_weight: 1.0
+
+  ema:
+    enabled: false
+    update_after_step: 0
+    inv_gamma: 1.0
+    power: 0.75
+    min_value: 0.0
+    max_value: 0.9999
+
+# Evaluation settings
+EVALUATION:
+  # Task configuration
+  task_suite_name: libero_object
+  task_id: 0
+  num_trials: 10
+  output_dir: ./evaluate_results/ewam_libero_horizontal_dim16/${now:%Y%m%d_%H%M%S}
+
+  # Runtime behavior
+  num_steps_wait: 30
+  replan_steps: 10
+  binarize_gripper: true
+
+  # Action inference
+  action_horizon: 16  # Take first 4 of action_chunk_size=16 per replan
+  num_inference_steps: 10
+  text_cfg_scale: 1.0
+
+  # Dataset stats (for state/action normalization). Training saves an aggregated
+  # dataset_stats.json (all 4 suites, element-wise min/max) to system.checkpoint_dir
+  # (= base/dataset_name level). If not found, the eval script aggregates meta/stat.json
+  # across ALL dataset_dirs below).
+  dataset_stats_path: "/path/to/ewam_weights/libero/dataset_stats.json"
+
+  # Device
+  device: cuda
+
+# T5 Encoder configuration for language embeddings (WAN cross-attention text condition)
+t5:
+  text_len: 512
+  checkpoint_path: /path/to/ewam_weights/Wan2.2-TI2V-5B/models_t5_umt5-xxl-enc-bf16.pth
+  tokenizer_path: /path/to/ewam_weights/Wan2.2-TI2V-5B/google/umt5-xxl
+
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: .
+  output_subdir: null
+
+# Dataset configuration (must match training config for normalization)
+# All 4 suites listed so the stat aggregation fallback (element-wise min/max across suites)
+# matches training's _load_stats aggregation. Eval data itself comes from the LIBERO benchmark
+# (task_suite_name), not these dirs — these dirs are only for normalization stat lookup.
+dataset:
+  type: "libero_lerobot"
+  dataset_dirs:
+    - "/path/to/libero_lerobot/libero_object_no_noops_lerobot"
+    - "/path/to/libero_lerobot/libero_10_no_noops_lerobot"
+    - "/path/to/libero_lerobot/libero_goal_no_noops_lerobot"
+    - "/path/to/libero_lerobot/libero_spatial_no_noops_lerobot"
+  suite_names:
+    - "libero_object"
+    - "libero_10"
+    - "libero_goal"
+    - "libero_spatial"
+  task_name: null
+  suite_weights: null
+  balance_suites: false
+  max_episodes: null
+  image_aug: false
+  use_eye_in_hand: false
+  use_normalization: true  # Must match training config
+  image_concat_mode: "horizontal"  # Horizontal (agentview | wrist), matches training
+  unify_to_16: true  # Pad state 8->16, restore action 16->7 in eval script

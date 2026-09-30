@@ -1,0 +1,49 @@
+# EWAM RoboTwin Evaluation Path Configuration
+# Copy this file to paths_config.yml (same directory) and edit the paths.
+
+# ============================================================================
+# Core Paths - MUST MODIFY THESE
+# ============================================================================
+# RoboTwin2.0 checkout root (contains script/eval_policy.py)
+robotwin_root: "/path/to/RoboTwin"
+
+# Conda environment for RoboTwin simulation (see README "RoboTwin → Evaluation")
+conda_env: "RoboTwin"
+
+# Trained EWAM checkpoint: the checkpoint_step_N/pytorch_model directory
+# (must contain mp_rank_00_model_states.pt), or the .pt file itself.
+# Released RoboTwin checkpoints (c2r / in-domain):
+#   https://huggingface.co/HaoWang00/EWAM
+checkpoint_path: "/path/to/checkpoint_step_20000/pytorch_model"
+
+# EWAM repository checkout (models/, wan/, utils/, data/, configs/) — the
+# deployed policy imports the EWAM package from here.
+ewam_root: "/path/to/EWAM"
+
+# Pretrained model paths (only for loading configs/tokenizer, not weights)
+wan_path: "/path/to/Wan2.2-TI2V-5B"          # Wan2.2-TI2V-5B (T5 encoder + VAE + wan config)
+vlm_path: "/path/to/Qwen3-VL-2B-Instruct"    # Qwen3-VL-2B-Instruct processor
+
+# ============================================================================
+# Optional Configuration
+# ============================================================================
+# EWAM training config yaml that produced the checkpoint (architecture only).
+# Leave null to use the default: <ewam_root>/configs/ewam_robotwin.yaml
+config_path: null
+
+# Directory name this policy is deployed under (RoboTwin/policy/<policy_name>/)
+policy_name: "Ewam_dim16"
+
+# GPU IDs (empty [] means auto-detect all GPUs)
+gpu_ids: []
+
+# Task configuration (RoboTwin task_config/<name>.yml): demo_randomized / demo_clean etc.
+task_config: "demo_randomized"
+
+seed: 42
+
+# Task list file (relative to this policy directory); ships with tasks_all.txt = 50 tasks
+tasks_file: "tasks_all.txt"
+
+# Where per-task stdout logs go (default: <robotwin_root>/eval_logs/ewam_auto_<timestamp>)
+log_dir: null

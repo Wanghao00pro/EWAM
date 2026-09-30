@@ -1,0 +1,38 @@
+# EWAM dependencies
+# (LIBERO is not pip-installable — clone it and add to PYTHONPATH, see README)
+# Anchored on our training environment (Python 3.10, torch 2.7.1+cu126); all lower
+# bounds below are satisfied by both our training and evaluation environments.
+# torch / torchvision: install the build matching your CUDA first, e.g.
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+torch>=2.4.0
+torchvision>=0.19.0
+transformers==5.0.0rc0
+qwen-vl-utils>=0.0.11
+tokenizers>=0.15.0
+safetensors>=0.4.0
+accelerate>=0.25.0
+deepspeed>=0.18.3
+diffusers>=0.25.0
+omegaconf>=2.3.0
+hydra-core>=1.3.2    # LIBERO eval scripts only (training does not need it)
+pyyaml>=6.0
+easydict>=1.13
+einops>=0.8.1
+ftfy>=6.3.1
+opencv-python>=4.8.0
+Pillow>=10.0.0
+imageio>=2.31.0
+imageio-ffmpeg>=0.4.8
+decord>=0.6.0
+av>=12.0.0          # torchvision pyav video backend (LIBERO training dataset)
+pyarrow>=14.0.0     # pandas.read_parquet (LIBERO lerobot data + T5 script)
+numpy>=1.24.0       # tested with 1.24 (training) and 2.2 (eval)
+scipy>=1.11.0
+pandas>=2.0.0
+h5py>=3.9.0
+wandb>=0.16.0
+tensorboard>=2.13.0
+tqdm>=4.66.0
+matplotlib>=3.7.0
+seaborn>=0.12.0

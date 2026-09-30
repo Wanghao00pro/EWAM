@@ -1,0 +1,9 @@
+# RoboTwin benchmark config for the EWAM policy (consumed by script/eval_policy.py
+# via --config; CLI --overrides keys are merged into these values at runtime).
+# Keep this file next to deploy_policy.py under RoboTwin/policy/<policy_name>/.
+policy_name: null
+task_name: null
+task_config: null
+ckpt_setting: null
+seed: null
+instruction_type: unseen

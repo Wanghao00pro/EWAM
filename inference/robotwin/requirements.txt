@@ -1,0 +1,25 @@
+# Requirements for the SEPARATE RoboTwin simulation environment used to run
+# inference/robotwin/deploy_policy.py (see README "RoboTwin → Evaluation").
+# This is NOT the training environment — install these AFTER setting up RoboTwin
+# itself (sapien etc.) following the official RoboTwin install guide.
+#
+# Anchored on the environment our RoboTwin evaluations ran in.
+
+torch>=2.4.0
+torchvision>=0.19.0
+transformers>=4.57.0   # Qwen3-VL support
+tokenizers>=0.20.3
+safetensors>=0.4.0
+accelerate>=1.1.1
+numpy>=1.23.5,<2
+opencv-python>=4.9.0.80
+Pillow>=10.0.0
+PyYAML>=6.0
+einops>=0.8.1
+ftfy
+decord>=0.6.0
+easydict
+imageio[ffmpeg]
+tqdm
+# Optional — Wan attention kernels fall back to PyTorch SDPA when absent:
+# flash_attn
