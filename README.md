@@ -1,4 +1,10 @@
-# EWAM
+# EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action
+
+[**Project Page**](https://wanghao00pro.github.io/EWAM-project/) | [**Technical Report**](https://wanghao00pro.github.io/EWAM-project/assets/EWAM_Technical_Report.pdf) | [**Model (Hugging Face)**](https://huggingface.co/HaoWang00/EWAM)
+
+This is the official implementation of EWAM. Vision-language-action (VLA) policies emphasize semantic understanding, whereas world-action models (WAMs) learn predictive representations of environment dynamics. EWAM is an action-centric unified embodied model whose asymmetric joint attention lets action tokens read semantic, current-visual, predicted-future, and action information at every layer. Without layer-wise supervision, it develops an emergent depth-wise specialization: action queries attend mainly to vision-language features in shallow layers, to predicted future frames in intermediate layers, and to action tokens themselves in deep layers.
+
+## Overview
 
 **EWAM** is a trimodal flow-matching Diffusion Transformer for robotic manipulation. A single denoising transformer processes three token streams jointly:
 
@@ -31,6 +37,7 @@ Actions and states are unified into a padded **16-dim space** so that one model 
 - [RoboTwin](#robotwin)
 - [LIBERO](#libero)
 - [FAQ](#faq)
+- [Citation](#citation)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
 
@@ -456,6 +463,19 @@ Keep `MUJOCO_GL=osmesa` (already set by the launcher). If osmesa is unavailable,
 
 **Q: CUDA OOM during training?**
 Lower `training.batch_size`, or enable `training.gradient_accumulation_steps > 1` (effective batch = batch_size × grad-accum × num GPUs). The video model dominates memory; `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` is already set by the entry script.
+
+## Citation
+
+If you find EWAM useful in your research, please cite:
+
+```bibtex
+@article{wang2026ewam,
+  title   = {{EWAM}: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action},
+  author  = {Wang, Hao and Wen, Jiajun and Liu, Jingzhi and Xue, Shuoshuo and Chen, Zhiliang and Lin, Min and Chang, Yicheng and Guo, Xiaoyu and Zhuo, Yukang and Chong, Zheng and Nie, Yunshuang and Zhang, Jian and Liufu, Weijia and Wu, Qingman and Xu, Heming and Song, Bingchang and Wu, Dantong and Wang, Zhiyuan and Xu, Hang and Han, Jianhua and Chen, Bokui and Zhao, Shen and Li, Rui and Liang, Xiaodan},
+  journal = {arXiv preprint},
+  year    = {2026}
+}
+```
 
 ## Acknowledgements
 
