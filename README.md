@@ -3,28 +3,10 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2609.39973-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2609.39973)
 [![Project Page](https://img.shields.io/badge/Project-Page-2f66d8?logo=googlechrome&logoColor=white)](https://wanghao00pro.github.io/EWAM-project/)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-ffcc4d)](https://huggingface.co/HaoWang00/EWAM)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10-3776ab?logo=python&logoColor=white)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.7-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/)
 
 This is the official implementation of EWAM. Vision-language-action (VLA) policies emphasize semantic understanding, whereas world-action models (WAMs) learn predictive representations of environment dynamics. EWAM is an action-centric unified embodied model whose asymmetric joint attention lets action tokens read semantic, current-visual, predicted-future, and action information at every layer. Without layer-wise supervision, it develops an emergent depth-wise specialization: action queries attend mainly to vision-language features in shallow layers, to predicted future frames in intermediate layers, and to action tokens themselves in deep layers.
 
 ## Overview
-
-**EWAM** is a trimodal flow-matching Diffusion Transformer for robotic manipulation. A single denoising transformer processes three token streams jointly:
-
-- **Video model** — [Wan2.2-TI2V-5B](https://github.com/Wan-Video/Wan2.2), denoises future video latents;
-- **Action expert** — a lightweight transformer expert that denoises the action chunk;
-- **VLM** — [Qwen3-VL-2B-Instruct](https://github.com/QwenLM/Qwen3-VL) (trainable), fused into every layer through direct MoT (per-layer QKV projections).
-
-The three streams attend through an **asymmetric attention mask**: the Action stream attends to everything (video + VLM + action), while Video and VLM only self-attend. Text conditioning for the video model's cross-attention comes from pre-encoded umt5-xxl (T5) instruction embeddings.
-
-Actions and states are unified into a padded **16-dim space** so that one model covers different robot embodiments; out-of-dataset dimensions are zero-padded and masked out of the loss. This repository ships **four end-to-end pipelines**:
-
-| | Training | Evaluation |
-|---|---|---|
-| **RoboTwin2.0** | stage-2 finetune with reweighted loss — `scripts/train_ewam_robotwin.sh` | benchmark deployment — `inference/robotwin/` (`deploy_policy.py` + `auto_eval.sh`) |
-| **LIBERO** | stage-2 finetune on lerobot-format demos — `scripts/train_ewam_libero.sh` | 4 suites × 10 tasks, dim16 horizontal variant — `scripts/run_ewam_libero_eval_horizontal_dim16.sh` |
 
 **Model components** (parameter counts measured from the released stage-2 checkpoint):
 
@@ -36,8 +18,29 @@ Actions and states are unified into a padded **16-dim space** so that one model 
 | **Action expert** | — | ~0.64B |
 | **Total** | | **~8.8B** |
 
+## Released Checkpoints
+
+All checkpoints are hosted on 🤗 [HaoWang00/EWAM](https://huggingface.co/HaoWang00/EWAM).
+
+| Checkpoint | Folder | Results (success %) |
+|---|---|---|
+| [Pretrain (multi-source, stage-1)](https://huggingface.co/HaoWang00/EWAM) | [`pretrain/`](https://huggingface.co/HaoWang00/EWAM) | Initialization for stage-2 finetuning |
+| [RoboTwin 2.0 clean-to-random](https://huggingface.co/HaoWang00/EWAM) | [`robotwin-c2r/`](https://huggingface.co/HaoWang00/EWAM) | C2C 82.2 / C2R 72.1 / Avg. **77.2** |
+| [RoboTwin 2.0 in-domain](https://huggingface.co/HaoWang00/EWAM) | [`robotwin-indomain/`](https://huggingface.co/HaoWang00/EWAM) | Clean 93.0 / Randomized 92.8 / Avg. **92.9** |
+| [LIBERO](https://huggingface.co/HaoWang00/EWAM) | [`libero/`](https://huggingface.co/HaoWang00/EWAM) | Spatial 98.6 / Object 99.8 / Goal 98.6 / Long 98.2 / Avg. **98.8** |
+
+```bash
+pip install -U "huggingface_hub"
+huggingface-cli download HaoWang00/EWAM --local-dir /path/to/ewam_weights
+# or a single checkpoint, e.g. LIBERO
+huggingface-cli download HaoWang00/EWAM --include "libero/*" --local-dir /path/to/ewam_weights
+```
+
+See [Pretrained weights](#2-pretrained-weights) for which config field each checkpoint plugs into.
+
 ## Table of Contents
 
+- [Released Checkpoints](#released-checkpoints)
 - [Installation](#installation)
 - [RoboTwin](#robotwin)
 - [LIBERO](#libero)
@@ -47,56 +50,6 @@ Actions and states are unified into a padded **16-dim space** so that one model 
 - [License](#license)
 
 ---
-
-## Repository layout
-
-```
-EWAM/
-├── train/
-│   ├── train_ewam.py                              # Training entry point (single entry for both datasets)
-│   └── sample.py                                  # Validation / sampling utilities
-├── eval_scripts/
-│   ├── eval_ewam_libero_single_horizontal_dim16.py  # Single (suite, task) LIBERO eval (hydra)
-│   └── attention_analysis_mask.py                 # Optional attention visualization for eval
-├── scripts/
-│   ├── train_ewam_robotwin.sh                     # Training launcher (RoboTwin, torchrun + DeepSpeed ZeRO-1)
-│   ├── train_ewam_libero.sh                       # Training launcher (LIBERO)
-│   └── run_ewam_libero_eval_horizontal_dim16.sh   # 4-suite parallel eval scheduler
-├── inference/
-│   └── robotwin/
-│       ├── deploy_policy.py                       # RoboTwin benchmark policy (EWAM)
-│       ├── deploy_policy.yml                      # RoboTwin eval config (template)
-│       ├── auto_eval.sh                           # 50-task parallel eval launcher
-│       ├── eval.sh                                # Single-task eval launcher
-│       ├── paths_config.example.yml               # Copy to paths_config.yml and edit
-│       ├── requirements.txt                       # RoboTwin-env inference deps
-│       └── tasks_all.txt                          # 50 RoboTwin2.0 task names
-├── configs/
-│   ├── ewam_robotwin.yaml                         # Training config (RoboTwin dim16)
-│   ├── ewam_libero.yaml                           # Training config (LIBERO dim16)
-│   ├── ewam_libero_eval_horizontal_dim16.yaml     # LIBERO eval config (dim16 horizontal)
-│   └── zero1.json                                 # DeepSpeed ZeRO stage-1 config
-├── models/
-│   ├── ewam.py                                    # EWAM model (asymmetric mask + inference KV-cache;
-│                                                  #   loss_reweight selects the loss variant)
-│   ├── wan_model_mask.py                          # WAN video-model wrapper
-│   ├── action_expert.py                           # Action expert
-│   └── qwen3_module_wan.py                        # Qwen3-VL per-layer fusion module
-├── data/
-│   ├── dataset.py                                 # Dataset factory (dispatch by dataset.type)
-│   ├── robotwin2/
-│   │   ├── robotwin_agilex_dataset_dim16.py       # RoboTwin dim16 training dataset
-│   │   └── robotwin_data_convert/                 # RoboTwin2.0 → EWAM data conversion pipeline
-│   ├── libero/
-│   │   ├── libero_lerobot_dataset.py              # LIBERO lerobot-format training dataset
-│   │   └── regenerate_libero_t5_with_prefix.py    # T5 embedding generation for LIBERO suites
-│   └── utils/image_utils.py
-├── experiments/libero/libero_utils.py             # LIBERO env / rollout helpers
-├── utils/                                         # common / scheduler / vlm_utils
-├── wan/                                           # Wan2.2 official code (Alibaba), vendored
-├── requirements.txt
-└── README.md
-```
 
 ## Installation
 
@@ -117,12 +70,7 @@ pip install -r requirements.txt
 
 ### 2. Pretrained weights
 
-**Released EWAM checkpoints** (stage-1 pretrain + the three stage-2 finetunes) are hosted on HuggingFace: [HaoWang00/EWAM](https://huggingface.co/HaoWang00/EWAM)
-
-```bash
-pip install -U "huggingface_hub"
-huggingface-cli download HaoWang00/EWAM --local-dir /path/to/ewam_weights
-```
+**Released EWAM checkpoints** (stage-1 pretrain + the three stage-2 finetunes) are hosted on HuggingFace: [HaoWang00/EWAM](https://huggingface.co/HaoWang00/EWAM); see [Released Checkpoints](#released-checkpoints) for the list and download commands.
 
 | Checkpoint | Usage |
 |---|---|
