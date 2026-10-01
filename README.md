@@ -1,6 +1,6 @@
 # EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action
 
-[**Project Page**](https://wanghao00pro.github.io/EWAM-project/) | [**Technical Report**](https://wanghao00pro.github.io/EWAM-project/assets/EWAM_Technical_Report.pdf) | [**Model (Hugging Face)**](https://huggingface.co/HaoWang00/EWAM)
+[**Project Page**](https://wanghao00pro.github.io/EWAM-project/) | [**Paper (arXiv)**](https://arxiv.org/abs/2609.39973) | [**Model (Hugging Face)**](https://huggingface.co/HaoWang00/EWAM)
 
 This is the official implementation of EWAM. Vision-language-action (VLA) policies emphasize semantic understanding, whereas world-action models (WAMs) learn predictive representations of environment dynamics. EWAM is an action-centric unified embodied model whose asymmetric joint attention lets action tokens read semantic, current-visual, predicted-future, and action information at every layer. Without layer-wise supervision, it develops an emergent depth-wise specialization: action queries attend mainly to vision-language features in shallow layers, to predicted future frames in intermediate layers, and to action tokens themselves in deep layers.
 
@@ -472,7 +472,7 @@ If you find EWAM useful in your research, please cite:
 @article{wang2026ewam,
   title   = {{EWAM}: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action},
   author  = {Wang, Hao and Wen, Jiajun and Liu, Jingzhi and Xue, Shuoshuo and Chen, Zhiliang and Lin, Min and Chang, Yicheng and Guo, Xiaoyu and Zhuo, Yukang and Chong, Zheng and Nie, Yunshuang and Zhang, Jian and Liufu, Weijia and Wu, Qingman and Xu, Heming and Song, Bingchang and Wu, Dantong and Wang, Zhiyuan and Xu, Hang and Han, Jianhua and Chen, Bokui and Zhao, Shen and Li, Rui and Liang, Xiaodan},
-  journal = {arXiv preprint},
+  journal = {arXiv preprint arXiv:2609.39973},
   year    = {2026}
 }
 ```
