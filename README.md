@@ -1,6 +1,11 @@
 # EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action
 
-[**Project Page**](https://wanghao00pro.github.io/EWAM-project/) | [**Paper (arXiv)**](https://arxiv.org/abs/2609.39973) | [**Model (Hugging Face)**](https://huggingface.co/HaoWang00/EWAM)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.39973-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2609.39973)
+[![Project Page](https://img.shields.io/badge/Project-Page-2f66d8?logo=googlechrome&logoColor=white)](https://wanghao00pro.github.io/EWAM-project/)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-ffcc4d)](https://huggingface.co/HaoWang00/EWAM)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10-3776ab?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.7-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/)
 
 This is the official implementation of EWAM. Vision-language-action (VLA) policies emphasize semantic understanding, whereas world-action models (WAMs) learn predictive representations of environment dynamics. EWAM is an action-centric unified embodied model whose asymmetric joint attention lets action tokens read semantic, current-visual, predicted-future, and action information at every layer. Without layer-wise supervision, it develops an emergent depth-wise specialization: action queries attend mainly to vision-language features in shallow layers, to predicted future frames in intermediate layers, and to action tokens themselves in deep layers.
 
