@@ -1,22 +1,10 @@
 # EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action
 
-[![arXiv](https://img.shields.io/badge/arXiv-2609.39973-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2609.39973)
 [![Project Page](https://img.shields.io/badge/Project-Page-2f66d8?logo=googlechrome&logoColor=white)](https://wanghao00pro.github.io/EWAM-project/)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.39973-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2609.39973)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-ffcc4d)](https://huggingface.co/HaoWang00/EWAM)
 
 This is the official implementation of EWAM. Vision-language-action (VLA) policies emphasize semantic understanding, whereas world-action models (WAMs) learn predictive representations of environment dynamics. EWAM is an action-centric unified embodied model whose asymmetric joint attention lets action tokens read semantic, current-visual, predicted-future, and action information at every layer. Without layer-wise supervision, it develops an emergent depth-wise specialization: action queries attend mainly to vision-language features in shallow layers, to predicted future frames in intermediate layers, and to action tokens themselves in deep layers.
-
-## Overview
-
-**Model components** (parameter counts measured from the released stage-2 checkpoint):
-
-| Component | Base model | Parameters |
-|---|---|---|
-| **Video model** | [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) | ~5.00B |
-| **VLM** | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) | ~2.44B |
-| **VLM fusion** (per-layer direct-MoT QKV projections) | — | ~0.76B |
-| **Action expert** | — | ~0.64B |
-| **Total** | | **~8.8B** |
 
 ## Released Checkpoints
 
@@ -35,6 +23,13 @@ huggingface-cli download HaoWang00/EWAM --local-dir /path/to/ewam_weights
 # or a single checkpoint, e.g. LIBERO
 huggingface-cli download HaoWang00/EWAM --include "libero/*" --local-dir /path/to/ewam_weights
 ```
+
+**Base models** (not included in the EWAM release; download them from the official repositories):
+
+| Component | Base model | Parameters |
+|---|---|---|
+| **Video model** | [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) | ~5.00B |
+| **VLM** | [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) | ~2.44B |
 
 See [Pretrained weights](#2-pretrained-weights) for which config field each checkpoint plugs into.
 
@@ -156,7 +151,7 @@ To train on your own robot, produce the four directories above per task. The min
 
 ### Training
 
-Training uses the shared entry point `train/train_ewam.py`, launched with `configs/ewam_robotwin.yaml` by `scripts/train_ewam_robotwin.sh` (torchrun + DeepSpeed ZeRO-1). By default it stage-2-finetunes from the released stage-1 pretrain checkpoint (`finetune.checkpoint_path` — the two init modes are described under [Pretrained weights](#2-pretrained-weights)). `model.loss_reweight: true` selects the reweighted loss (Gaussian timestep weighting + shifted timestep sampling) inside the shared model class; the plain variant (used by LIBERO) shares the same state dict and inference path.
+Training uses the shared entry point `train/train_ewam.py`, launched with `configs/ewam_robotwin.yaml` by `scripts/train_ewam_robotwin.sh` (torchrun + DeepSpeed ZeRO-1). By default it stage-2-finetunes from the released stage-1 pretrain checkpoint (`finetune.checkpoint_path` — the two init modes are described under [Pretrained weights](#2-pretrained-weights)). `model.loss_reweight: true` selects the reweighted loss (Gaussian timestep weighting + shifted timestep sampling) inside the shared model class.
 
 ```bash
 bash scripts/train_ewam_robotwin.sh
@@ -315,7 +310,7 @@ python data/libero/regenerate_libero_t5_with_prefix.py \
 
 ### Training
 
-Training uses the shared entry point `train/train_ewam.py`, launched with `configs/ewam_libero.yaml` by `scripts/train_ewam_libero.sh` (torchrun + DeepSpeed ZeRO-1). `model.loss_reweight: false` here — LIBERO trains with the plain uniform-mean-MSE flow-matching loss.
+Training uses the shared entry point `train/train_ewam.py`, launched with `configs/ewam_libero.yaml` by `scripts/train_ewam_libero.sh` (torchrun + DeepSpeed ZeRO-1).
 
 Edit `configs/ewam_libero.yaml`:
 
@@ -332,7 +327,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 MASTER_PORT=29201 bash scripts/train_ewam_libero.sh
 
 **The released LIBERO checkpoint** (download from [HuggingFace](https://huggingface.co/HaoWang00/EWAM)): 8 GPUs, per-GPU batch 8 (effective 64), 20,000 steps.
 
-Key settings: `action_dim=16` / `state_dim=16` (padded from LIBERO 7/8), horizontal 224×448 images, action chunk = 16, `image_concat_mode: horizontal`, `unify_to_16: true` (the padded dims are masked out of the loss via `action_dim_is_pad`), `model.loss_reweight: false` (plain uniform-MSE loss).
+Key settings: `action_dim=16` / `state_dim=16` (padded from LIBERO 7/8), horizontal 224×448 images, action chunk = 16, `image_concat_mode: horizontal`, `unify_to_16: true` (the padded dims are masked out of the loss via `action_dim_is_pad`).
 
 Checkpoints are written under `system.checkpoint_dir / <run name>/`:
 
